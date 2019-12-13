@@ -23,9 +23,9 @@ const mutations = {
 const actions = {
   // user login
   login({ commit }, userInfo) {
-    const { username, password } = userInfo
+    const { name, password } = userInfo
     return new Promise((resolve, reject) => {
-      login({ username: username.trim(), password: password }).then(response => {
+      login({ name: name.trim(), password: password }).then(response => {
         const { data } = response
         commit('SET_TOKEN', data.token)
         setToken(data.token)
@@ -43,13 +43,15 @@ const actions = {
         const { data } = response
 
         if (!data) {
-          reject('Verification failed, please Login again.')
+          reject('验证失败，请重新登录')
         }
 
-        const { name, avatar } = data
+        // const { name, avatar } = data
+        const { name } = data
 
         commit('SET_NAME', name)
-        commit('SET_AVATAR', avatar)
+        // 头像，暂时先写死
+        commit('SET_AVATAR', 'https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif')
         resolve(data)
       }).catch(error => {
         reject(error)

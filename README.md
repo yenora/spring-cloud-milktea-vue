@@ -1,8 +1,8 @@
-# vue-admin-template
+# spring-cloud-milktea-vue
 
 English | [简体中文](./README-zh.md)
 
-> A minimal vue admin template with Element UI & axios & iconfont & permission control & lint
+> A minimal based on vue-cli and vue-admin-template with Element UI & axios & iconfont & permission control & lint
 
 **Live demo:** http://panjiachen.github.io/vue-admin-template
 
@@ -13,11 +13,7 @@ English | [简体中文](./README-zh.md)
 
 
 ```bash
-# clone the project
-git clone https://github.com/PanJiaChen/vue-admin-template.git
-
-# enter the project directory
-cd vue-admin-template
+cd spring-cloud-milktea-vue
 
 # install dependency
 npm install
@@ -26,7 +22,7 @@ npm install
 npm run dev
 ```
 
-This will automatically open http://localhost:9528
+This will automatically open http://localhost:8080
 
 ## Build
 
@@ -69,12 +65,6 @@ For `typescript` version, you can use [vue-typescript-admin-template](https://gi
 ## Related Project
 
 - [vue-element-admin](https://github.com/PanJiaChen/vue-element-admin)
-
-- [electron-vue-admin](https://github.com/PanJiaChen/electron-vue-admin)
-
-- [vue-typescript-admin-template](https://github.com/Armour/vue-typescript-admin-template)
-
-- [awesome-project](https://github.com/PanJiaChen/vue-element-admin/issues/2312)
 
 ## Browsers support
 

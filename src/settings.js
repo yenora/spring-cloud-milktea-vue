@@ -1,6 +1,6 @@
 module.exports = {
 
-  title: 'Vue Admin Template',
+  title: '恋上奶茶-后台管理',
 
   /**
    * @type {boolean} true | false
