@@ -6,23 +6,29 @@ const productRouter = {
   path: '/product',
   component: Layout,
   redirect: '/product/',
-  name: '产品',
+  name: '产品管理',
   meta: {
-    title: '产品',
-    icon: 'table'
+    title: '产品管理',
+    icon: 'component'
   },
   children: [
     {
-      path: 'list',
-      name: '列表',
+      path: 'milktea',
+      name: '奶茶',
       component: () => import('@/views/product/index'),
-      meta: { title: '列表', icon: 'table' }
+      meta: { title: '奶茶', icon: 'list' }
     },
     {
-      path: 'tree',
-      name: '树',
+      path: 'staple',
+      name: '原料',
       component: () => import('@/views/tree/index'),
-      meta: { title: '树', icon: 'tree' }
+      meta: { title: '原料', icon: 'list' }
+    },
+    {
+      path: 'type',
+      name: '种类',
+      component: () => import('@/views/tree/index'),
+      meta: { title: '种类', icon: 'list' }
     }
     // {
     //   path: 'dynamic-table',

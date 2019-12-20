@@ -1,9 +1,9 @@
 import request from '@/utils/request'
 
-export function prosearchstaple(ids) {
+export function prostaplelist(data) {
   return request({
-    url: '/v1/product/staple/getByIds',
+    url: '/v1/product/staple/query/list',
     method: 'post',
-    params: { ids }
+    data
   })
 }

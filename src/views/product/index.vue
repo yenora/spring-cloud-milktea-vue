@@ -1,12 +1,12 @@
 <template>
   <div class="app-container">
     <div class="filter-container" style="margin-bottom: 20px;">
-      <el-input v-model="listQuery.title" placeholder="名称" style="width: 200px;" class="filter-item" @keyup.enter.native="handleFilter" />
-      <el-select v-model="listQuery.importance" placeholder="推荐指数" clearable style="width: 120px" class="filter-item">
-        <el-option v-for="item in importanceOptions" :key="item" :label="item" :value="item" />
+      <el-input v-model="listQuery.entity.name" placeholder="名称" style="width: 200px;" class="filter-item" @keyup.enter.native="handleFilter" />
+      <el-select v-model="listQuery.entity.recommend" placeholder="推荐指数" clearable style="width: 120px" class="filter-item">
+        <el-option v-for="item in recommendOptions" :key="item" :label="item" :value="item" />
       </el-select>
-      <el-select v-model="listQuery.type" placeholder="类型" clearable class="filter-item" style="width: 130px">
-        <el-option v-for="item in calendarTypeOptions" :key="item.key" :label="item.display_name+'('+item.key+')'" :value="item.key" />
+      <el-select v-model="listQuery.entity.typeId" placeholder="类型" clearable class="filter-item" style="width: 130px">
+        <el-option v-for="item in typeList" :key="item.id" :label="item.name" :value="item.id" />
       </el-select>
       <el-select v-model="listQuery.sort" style="width: 140px" class="filter-item" @change="handleFilter">
         <el-option v-for="item in sortOptions" :key="item.key" :label="item.label" :value="item.key" />
@@ -20,11 +20,11 @@
       <el-button v-waves :loading="downloadLoading" class="filter-item" type="primary" icon="el-icon-download" @click="handleDownload">
         导出
       </el-button>
-      <el-checkbox v-model="showReviewer" class="filter-item" style="margin-left:15px;" @change="tableKey=tableKey+1">
+      <el-checkbox v-model="showTime" class="filter-item" style="margin-left:15px;" @change="tableKey=tableKey+1">
         创建时间
       </el-checkbox>
     </div>
-    <el-table :data="list" style="width: 100%" @expand-change="expandSelect">
+    <el-table :key="tableKey" :data="list" style="width: 100%">
       <el-table-column type="expand">
         <template slot-scope="{row}">
           <el-form label-position="left" inline class="table-expand">
@@ -32,10 +32,10 @@
               <span>{{ row.id }}</span>
             </el-form-item>
             <el-form-item label="类型">
-              <span>{{ type }}</span>
+              <span>{{ row.productTypeDTO.name }}</span>
             </el-form-item>
             <el-form-item label="原料">
-              <span>{{ staples }}</span>
+              <span>{{ row.productStapleDTO.names }}</span>
             </el-form-item>
             <el-form-item label="名称">
               <span>{{ row.name }}</span>
@@ -51,9 +51,6 @@
             </el-form-item>
             <el-form-item label="销售量">
               <span>{{ row.sales }}</span>
-            </el-form-item>
-            <el-form-item label="创建时间">
-              <span>{{ row.createTime | parseTime('{y}-{m}-{d} {h}:{i}') }}</span>
             </el-form-item>
           </el-form>
         </template>
@@ -89,12 +86,18 @@
         </template>
       </el-table-column>
 
+      <el-table-column v-if="showTime" label="创建时间" width="110px" align="center">
+        <template slot-scope="{row}">
+          <span style="color:red;">{{ row.createTime | parseTime('{y}-{m}-{d} {h}:{i}') }}</span>
+        </template>
+      </el-table-column>
+
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template slot-scope="{row}">
           <el-button type="primary" size="mini" @click="handleUpdate(row)">
             编辑
           </el-button>
-          <el-button size="mini" type="danger" @click="handleDel(row)">
+          <el-button size="mini" type="danger" @click="handleDel(row.id)">
             删除
           </el-button>
         </template>
@@ -102,37 +105,41 @@
     </el-table>
 
     <el-dialog :title="textMap[dialogStatus]" :visible.sync="dialogFormVisible">
-      <el-form ref="dataForm" :rules="rules" :model="temp" label-position="left" label-width="70px" style="width: 400px; margin-left:50px;">
-        <!-- <el-form-item label="Type" prop="type">
-          <el-select v-model="temp.type" class="filter-item" placeholder="Please select">
-            <el-option v-for="item in calendarTypeOptions" :key="item.key" :label="item.display_name" :value="item.key" />
+      <el-form ref="dataForm" :rules="rules" :model="temp" label-position="left" label-width="90px" style="width: 400px; margin-left:50px;">
+        <el-form-item label="类型" prop="productTypeDTO">
+          <el-select v-model="temp.productTypeDTO.id" class="filter-item" placeholder="请选择">
+            <el-option v-for="item in typeList" :key="item.id" :label="item.name" :value="item.id" />
           </el-select>
         </el-form-item>
-        <el-form-item label="Date" prop="timestamp">
-          <el-date-picker v-model="temp.timestamp" type="datetime" placeholder="Please pick a date" />
-        </el-form-item> -->
-        <!-- <el-form-item label="名称" prop="name">
+        <el-form-item label="原料" prop="productStapleDTO">
+          <!--value-key="id"-->
+          <el-select v-model="temp.productStapleDTO.ids" class="filter-item" placeholder="请选择" multiple>
+            <el-option v-for="item in stapleList" :key="item.id" :label="item.name" :value="item.id" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="创建时间" prop="createTime">
+          <el-date-picker v-model="temp.createTime" type="datetime" placeholder="请选择时间" />
+        </el-form-item>
+        <el-form-item label="名称" prop="name">
           <el-input v-model="temp.name" />
-        </el-form-item> -->
-        <!-- <el-form-item label="Status">
-          <el-select v-model="temp.status" class="filter-item" placeholder="Please select">
-            <el-option v-for="item in statusOptions" :key="item" :label="item" :value="item" />
-          </el-select>
         </el-form-item>
-        <el-form-item label="Imp">
-          <el-rate v-model="temp.importance" :colors="['#99A9BF', '#F7BA2A', '#FF9900']" :max="3" style="margin-top:8px;" />
+        <el-form-item label="价格" prop="price">
+          <el-input v-model="temp.price" />
         </el-form-item>
-        <el-form-item label="Remark">
-          <el-input v-model="temp.remark" :autosize="{ minRows: 2, maxRows: 4}" type="textarea" placeholder="Please input" />
-        </el-form-item> -->
+        <el-form-item label="推荐指数">
+          <el-rate v-model="temp.recommend" :colors="['#99A9BF', '#F7BA2A', '#FF9900']" :max="3" style="margin-top:8px;" />
+        </el-form-item>
+        <el-form-item label="介绍">
+          <el-input v-model="temp.introduction" :autosize="{ minRows: 2, maxRows: 4}" type="textarea" placeholder="请输入" />
+        </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <!-- <el-button @click="dialogFormVisible = false">
-          Cancel
-        </el-button> -->
-        <!-- <el-button type="primary" @click="dialogStatus==='create'?createData():updateData()">
-          Confirm
-        </el-button> -->
+        <el-button @click="dialogFormVisible = false">
+          取消
+        </el-button>
+        <el-button type="primary" @click="dialogStatus==='添加'?createData():updateData()">
+          确定
+        </el-button>
       </div>
     </el-dialog>
 
@@ -141,69 +148,252 @@
 </template>
 
 <script>
-import { prolist } from '@/api/product'
-import { prosearchtype } from '@/api/product_type'
-import { prosearchstaple } from '@/api/product_staple'
+import { prolist, proinsert, proupdate, prodel } from '@/api/product'
+import { protypelist } from '@/api/product_type'
+import { prostaplelist } from '@/api/product_staple'
 import { parseTime } from '@/utils'
+
+import Pagination from '@/components/Pagination'
+import waves from '@/directive/waves' // waves directive
 
 export default {
   name: 'Product',
-  filters: {
-    parseTime
-  },
+  filters: { parseTime },
+  components: { Pagination },
+  directives: { waves },
   data() {
+    const isPriceVlidator = (rule, value, callback) => {
+      var pattern = /^\d+.?\d{0,2}$/
+      if (!value) {
+        return callback(new Error('价格不能为空！'))
+      } else if (value > 214748) {
+        return callback(new Error('价格定这么高？你有点飘啊'))
+      } else if (value <= 214748 && !pattern.test(value)) {
+        return callback(new Error('小数点后最多只能输入两位！'))
+      } else return callback()
+    }
+    const validType = (rule, value, callback) => {
+      if (!value.id) {
+        return callback(new Error('种类不能为空！'))
+      } else return callback()
+    }
+    const validStaple = (rule, value, callback) => {
+      if (value.ids.length === 0) {
+        return callback(new Error('原料不能为空！'))
+      } else return callback()
+    }
     return {
-      staples: '',
-      type: '',
-      list: null,
+      listLoading: true,
+      downloadLoading: false,
+      tableKey: 0,
       total: 0,
-      importanceOptions: [1, 2, 3],
+      showTime: false,
+      stapleList: null,
+      typeList: null,
+      list: null,
+      // 先定死
+      recommendOptions: [1, 2, 3],
       sortOptions: [{ label: '根据ID升序', key: '+id' }, { label: '根据ID降序', key: '-id' }],
-      dialogFormVisible: false,
-      dialogStatus: '',
-      textMap: {
-        update: 'Edit',
-        create: 'Create'
-      },
       listQuery: {
         page: 1,
         limit: 5,
-        recommend: undefined,
-        name: undefined,
-        type: undefined,
-        sort: '+id'
+        sort: '+id',
+        entity: {
+          name: undefined,
+          recommend: undefined,
+          typeId: undefined
+        }
+      },
+      dialogFormVisible: false,
+      dialogStatus: '',
+      textMap: {
+        update: '修改',
+        create: '添加'
+      },
+      rules: {
+        name: [{ required: true, message: '名称不能为空', trigger: 'blur' }],
+        productTypeDTO: [
+          { required: true, message: '类型不能为空', trigger: 'change', validator: validType }
+        ],
+        productStapleDTO: [
+          { required: true, message: '原料不能为空', trigger: 'change', validator: validStaple }
+        ],
+        price: [{ required: true, validator: isPriceVlidator, trigger: 'blur' }]
+      },
+      temp: {
+        id: undefined,
+        typeId: undefined,
+        staples: '',
+        recommend: 1,
+        introduction: '',
+        createTime: new Date(),
+        name: '',
+        productTypeDTO: {
+          id: undefined,
+          name: ''
+        },
+        productStapleDTO: {
+          ids: [],
+          name: []
+        },
+        price: 0.0,
+        sales: 0
       }
     }
   },
   created() {
+    this.listLoading = true
     this.getList()
+    this.getTypeList()
+    this.getStapleList()
+    this.listLoading = false
   },
   methods: {
-    async expandSelect(row, expandedRows) {
-      const typename = await prosearchtype(row.typeId)
-      const staplenames = await prosearchstaple(row.staples)
-      this.type = typename.name
-      this.staples = staplenames
+    getList() {
+      prolist(this.listQuery).then(response => {
+        this.list = response.list
+        this.total = response.total
+      })
     },
-    async getList() {
-      const { list } = await prolist(this.listQuery)
-      this.list = list
+    getTypeList() {
+      protypelist({}).then(response => {
+        this.typeList = response
+      })
+    },
+    getStapleList() {
+      prostaplelist({}).then(response => {
+        this.stapleList = response
+      })
+    },
+    handleFilter() {
+      this.listQuery.page = 1
+      this.getList()
+    },
+    handleDownload() {
+      this.downloadLoading = true
+      import('@/vendor/Export2Excel').then(excel => {
+        const tHeader = ['ID', '种类', '原料', '名称', '价格', '介绍', '销售量', '创建时间']
+        const filterVal = [
+          'id',
+          'productTypeDTO',
+          'productStapleDTO',
+          'name',
+          'price',
+          'introduction',
+          'sales',
+          'createTime'
+        ]
+        const data = this.formatJson(filterVal, this.list)
+        excel.export_json_to_excel({
+          header: tHeader,
+          data,
+          filename: '恋上奶茶店-产品列表数据'
+        })
+        this.downloadLoading = false
+      })
+    },
+    formatJson(filterVal, jsonData) {
+      return jsonData.map(v =>
+        filterVal.map(j => {
+          if (j === 'createTime') {
+            v[j] = parseTime(v[j])
+          }
+          console.log()
+          if (j === 'productTypeDTO') {
+            v[j] = v.productTypeDTO.name
+          }
+          if (j === 'productStapleDTO') {
+            v[j] = v.productStapleDTO.names
+          }
+          return v[j]
+        })
+      )
     },
     resetTemp() {
       this.temp = {
         id: undefined,
         recommend: 1,
+        introduction: '',
+        createTime: new Date(),
         name: '',
-        type: '',
-        staples: ''
+        productTypeDTO: {
+          id: undefined,
+          name: ''
+        },
+        productStapleDTO: {
+          ids: [],
+          name: []
+        },
+        price: 0.0,
+        sales: 0
       }
     },
     handleCreate() {
       this.resetTemp()
-      this.dialogStatus = 'create'
+      this.dialogStatus = '添加'
       this.dialogFormVisible = true
       this.$nextTick(() => {
         this.$refs['dataForm'].clearValidate()
+      })
+    },
+    createData() {
+      this.$refs['dataForm'].validate(valid => {
+        if (valid) {
+          const tempData = Object.assign({}, this.temp)
+          tempData.typeId = tempData.productTypeDTO.id
+          tempData.staples = tempData.productStapleDTO.ids.join(',')
+          tempData.createTime = parseTime(tempData.createTime)
+          proinsert(tempData).then(() => {
+            this.listQuery.sort = '-id'
+            this.getList()
+            this.dialogFormVisible = false
+            this.$notify({
+              title: '成功',
+              message: '添加记录成功',
+              type: 'success',
+              duration: 2000
+            })
+          })
+        }
+      })
+    },
+    handleUpdate(row) {
+      this.temp = Object.assign({}, row) // copy obj
+      this.dialogStatus = '修改'
+      this.dialogFormVisible = true
+      this.$nextTick(() => {
+        this.$refs['dataForm'].clearValidate()
+      })
+    },
+    updateData() {
+      this.$refs['dataForm'].validate(valid => {
+        if (valid) {
+          const tempData = Object.assign({}, this.temp)
+          tempData.typeId = tempData.productTypeDTO.id
+          tempData.staples = tempData.productStapleDTO.ids.join(',')
+          tempData.createTime = parseTime(tempData.createTime)
+          proupdate(tempData).then(() => {
+            this.getList()
+            this.dialogFormVisible = false
+            this.$notify({
+              title: '成功',
+              message: '修改记录成功',
+              type: 'success',
+              duration: 2000
+            })
+          })
+        }
+      })
+    },
+    handleDel(id) {
+      prodel(id).then(() => {
+        this.getList()
+        this.$notify({
+          title: '成功',
+          message: '删除记录成功',
+          type: 'success',
+          duration: 2000
+        })
       })
     }
   }

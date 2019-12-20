@@ -10,15 +10,14 @@ export function prolist(query) {
 
 export function prodel(id) {
   return request({
-    url: '/v1/product/del',
-    method: 'get',
-    params: { id }
+    url: '/v1/product/' + id,
+    method: 'delete'
   })
 }
 
 export function proinsert(data) {
   return request({
-    url: '/v1/product/create',
+    url: '/v1/product/add',
     method: 'post',
     data
   })
@@ -27,7 +26,7 @@ export function proinsert(data) {
 export function proupdate(data) {
   return request({
     url: '/v1/product/update',
-    method: 'post',
+    method: 'put',
     data
   })
 }
