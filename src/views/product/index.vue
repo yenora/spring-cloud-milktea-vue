@@ -69,8 +69,12 @@
       </el-table-column>
 
       <el-table-column label="图片" align="center">
-        <template v-if="row.pic" slot-scope="{row}">
-          <el-image style="width: 60px; height: 60px" :src="require('@/upload/' + row.pic)" :preview-src-list="[require('@/upload/' + row.pic)]" />
+        <template slot-scope="{row}">
+          <el-image
+            style="width: 60px; height: 60px"
+            :src="row.pic === null ? defaultJPG : row.pic"
+            :preview-src-list="[row.pic === null ? defaultJPG : row.pic]"
+          />
         </template>
       </el-table-column>
 
@@ -97,7 +101,7 @@
           <el-button type="primary" size="mini" @click="handleUpdate(row)">
             编辑
           </el-button>
-          <el-button size="mini" type="danger" @click="handleDel(row.id)">
+          <el-button size="mini" type="danger" @click="handleDel(row)">
             删除
           </el-button>
         </template>
@@ -126,6 +130,27 @@
         <el-form-item label="价格" prop="price">
           <el-input v-model="temp.price" />
         </el-form-item>
+        <el-form-item label="图片" prop="pic">
+          <el-input v-if="false" v-model="temp.pic" type="hidden" />
+          <el-upload
+            ref="upload"
+            class="upload-poster"
+            :action="imgUploadApi[dialogStatus]"
+            :data="imgUploadData[dialogStatus]"
+            :file-list="fileList"
+            :show-file-list="false"
+            :auto-upload="false"
+            :on-change="imgPreview"
+            :on-success="uploadOnSuccess"
+            :on-error="uploadOnError"
+          >
+            <img v-if="browserUrl" :src="browserUrl" class="img-class">
+            <img v-else-if="temp.pic" :src="temp.pic" class="img-class">
+            <div v-else class="el-upload el-upload--picture-card">
+              <i class="el-icon-plus" />
+            </div>
+          </el-upload>
+        </el-form-item>
         <el-form-item label="推荐指数">
           <el-rate v-model="temp.recommend" :colors="['#99A9BF', '#F7BA2A', '#FF9900']" :max="3" style="margin-top:8px;" />
         </el-form-item>
@@ -137,7 +162,7 @@
         <el-button @click="dialogFormVisible = false">
           取消
         </el-button>
-        <el-button type="primary" @click="dialogStatus==='添加'?createData():updateData()">
+        <el-button type="primary" @click="handleImgUpload()">
           确定
         </el-button>
       </div>
@@ -151,10 +176,13 @@
 import { prolist, proinsert, proupdate, prodel } from '@/api/product'
 import { protypelist } from '@/api/product_type'
 import { prostaplelist } from '@/api/product_staple'
+import { deleteFile } from '@/api/fileUpload'
 import { parseTime } from '@/utils'
 
 import Pagination from '@/components/Pagination'
 import waves from '@/directive/waves' // waves directive
+
+import defaultJPG from '@/assets/default.jpg'
 
 export default {
   name: 'Product',
@@ -208,7 +236,9 @@ export default {
       dialogStatus: '',
       textMap: {
         update: '修改',
-        create: '添加'
+        create: '添加',
+        delete: '删除',
+        download: '下载'
       },
       rules: {
         name: [{ required: true, message: '名称不能为空', trigger: 'blur' }],
@@ -237,8 +267,40 @@ export default {
           name: []
         },
         price: 0.0,
-        sales: 0
-      }
+        sales: 0,
+        pic: ''
+      },
+      imgUploadApi: {
+        create: '/iccp-milktea-rest/v1/file/uploadFile',
+        update: '/iccp-milktea-rest/v1/file/updateFile',
+        delete: '',
+        download: ''
+      },
+      imgUploadData: {
+        create: {
+          username: '',
+          fileType: ''
+        },
+        update: {
+          username: '',
+          fileType: '',
+          fileName: ''
+        },
+        delete: {
+          username: '',
+          fileType: '',
+          fileName: ''
+        },
+        download: {
+          username: '',
+          fileType: '',
+          fileName: '',
+          localPath: ''
+        }
+      },
+      browserUrl: '',
+      fileList: [],
+      defaultJPG: defaultJPG
     }
   },
   created() {
@@ -283,7 +345,10 @@ export default {
           'sales',
           'createTime'
         ]
-        const data = this.formatJson(filterVal, this.list)
+
+        // 实现对象的深拷贝，这里不知道为什么会成功，this.list好像不是个json吧
+        const tempData = JSON.parse(JSON.stringify(this.list))
+        const data = this.formatJson(filterVal, tempData)
         excel.export_json_to_excel({
           header: tHeader,
           data,
@@ -298,7 +363,6 @@ export default {
           if (j === 'createTime') {
             v[j] = parseTime(v[j])
           }
-          console.log()
           if (j === 'productTypeDTO') {
             v[j] = v.productTypeDTO.name
           }
@@ -325,68 +389,74 @@ export default {
           name: []
         },
         price: 0.0,
-        sales: 0
+        sales: 0,
+        pic: ''
       }
     },
     handleCreate() {
       this.resetTemp()
-      this.dialogStatus = '添加'
+      this.dialogStatus = 'create'
       this.dialogFormVisible = true
+      this.browserUrl = ''
       this.$nextTick(() => {
         this.$refs['dataForm'].clearValidate()
       })
     },
     createData() {
-      this.$refs['dataForm'].validate(valid => {
-        if (valid) {
-          const tempData = Object.assign({}, this.temp)
-          tempData.typeId = tempData.productTypeDTO.id
-          tempData.staples = tempData.productStapleDTO.ids.join(',')
-          tempData.createTime = parseTime(tempData.createTime)
-          proinsert(tempData).then(() => {
-            this.listQuery.sort = '-id'
-            this.getList()
-            this.dialogFormVisible = false
-            this.$notify({
-              title: '成功',
-              message: '添加记录成功',
-              type: 'success',
-              duration: 2000
-            })
-          })
-        }
+      const tempData = Object.assign({}, this.temp)
+      tempData.typeId = tempData.productTypeDTO.id
+      tempData.staples = tempData.productStapleDTO.ids.join(',')
+      tempData.createTime = parseTime(tempData.createTime)
+      proinsert(tempData).then(() => {
+        this.listQuery.sort = '-id'
+        this.getList()
+        this.dialogFormVisible = false
+        this.$notify({
+          title: '成功',
+          message: '添加记录成功',
+          type: 'success',
+          duration: 2000
+        })
       })
     },
     handleUpdate(row) {
       this.temp = Object.assign({}, row) // copy obj
-      this.dialogStatus = '修改'
+      this.dialogStatus = 'update'
       this.dialogFormVisible = true
+      this.browserUrl = ''
       this.$nextTick(() => {
         this.$refs['dataForm'].clearValidate()
       })
     },
     updateData() {
-      this.$refs['dataForm'].validate(valid => {
-        if (valid) {
-          const tempData = Object.assign({}, this.temp)
-          tempData.typeId = tempData.productTypeDTO.id
-          tempData.staples = tempData.productStapleDTO.ids.join(',')
-          tempData.createTime = parseTime(tempData.createTime)
-          proupdate(tempData).then(() => {
-            this.getList()
-            this.dialogFormVisible = false
-            this.$notify({
-              title: '成功',
-              message: '修改记录成功',
-              type: 'success',
-              duration: 2000
-            })
-          })
-        }
+      const tempData = Object.assign({}, this.temp)
+      tempData.typeId = tempData.productTypeDTO.id
+      tempData.staples = tempData.productStapleDTO.ids.join(',')
+      tempData.createTime = parseTime(tempData.createTime)
+      proupdate(tempData).then(() => {
+        this.getList()
+        this.dialogFormVisible = false
+        this.$notify({
+          title: '成功',
+          message: '修改记录成功',
+          type: 'success',
+          duration: 2000
+        })
       })
     },
-    handleDel(id) {
-      prodel(id).then(() => {
+    handleDel(row) {
+      this.dialogStatus = 'delete'
+      this.imgUploadData[this.dialogStatus].username = 'super'
+      this.imgUploadData[this.dialogStatus].fileType = 'image'
+      if (row.pic !== '') {
+        this.imgUploadData[this.dialogStatus].fileName = row.pic
+        deleteFile(this.imgUploadData[this.dialogStatus]).then(response => {
+          if (!response.data) {
+            console.log('文件服务器不存在此文件')
+          }
+        })
+      }
+      prodel(row.id).then(() => {
         this.getList()
         this.$notify({
           title: '成功',
@@ -394,6 +464,52 @@ export default {
           type: 'success',
           duration: 2000
         })
+      })
+    },
+    imgPreview(file, fileList) {
+      const fileName = file.name
+      const regex = /(.jpg|.jpeg|.gif|.png|.bmp)$/
+      if (regex.test(fileName.toLowerCase())) {
+        if (fileList.length > 0) {
+          // 保证fileList中只有一个文件，并且是最新上传的
+          this.fileList = [fileList[fileList.length - 1]]
+        }
+        this.browserUrl = URL.createObjectURL(file.raw)
+        this.imgUploadData[this.dialogStatus].username = 'super'
+        this.imgUploadData[this.dialogStatus].fileType = 'image'
+        if (this.dialogStatus === 'update') {
+          this.imgUploadData[this.dialogStatus].fileName = this.temp.pic
+        }
+      } else {
+        // 移除最后一个文件
+        this.fileList.pop()
+        this.$message.error('请选择图片文件')
+      }
+    },
+    uploadOnError(response, file) {
+      this.$message.warning('图片上传出错！')
+    },
+    uploadOnSuccess(response, file) {
+      if (response.data !== '') {
+        this.temp.pic = response.data
+      }
+      if (this.dialogStatus === 'create') {
+        this.createData()
+      } else if (this.dialogStatus === 'update') {
+        this.updateData()
+      }
+    },
+    handleImgUpload() {
+      this.$refs['dataForm'].validate(valid => {
+        if (valid) {
+          if (this.browserUrl !== '') {
+            this.$refs.upload.submit()
+          } else if (this.browserUrl === '' && this.dialogStatus === 'create') {
+            this.createData()
+          } else if (this.browserUrl === '' && this.dialogStatus === 'update') {
+            this.updateData()
+          }
+        }
       })
     }
   }
@@ -412,5 +528,9 @@ export default {
   margin-right: 0;
   margin-bottom: 0;
   width: 50%;
+}
+.img-class{
+  width: 100px;
+  height: 100px;
 }
 </style>

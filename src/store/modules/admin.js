@@ -1,4 +1,4 @@
-import { login, logout, getInfo } from '@/api/user'
+import { login, logout, getInfo } from '@/api/admin'
 import { getToken, setToken, removeToken } from '@/utils/auth'
 import { resetRouter } from '@/router'
 
@@ -21,9 +21,9 @@ const mutations = {
 }
 
 const actions = {
-  // user login
-  login({ commit }, userInfo) {
-    const { name, password } = userInfo
+  // admin login
+  login({ commit }, adminInfo) {
+    const { name, password } = adminInfo
     return new Promise((resolve, reject) => {
       login({ name: name.trim(), password: password }).then(response => {
         const { data } = response
@@ -36,7 +36,7 @@ const actions = {
     })
   },
 
-  // get user info
+  // get admin info
   getInfo({ commit, state }) {
     return new Promise((resolve, reject) => {
       getInfo(state.token).then(response => {
@@ -46,12 +46,10 @@ const actions = {
           reject('验证失败，请重新登录')
         }
 
-        // const { name, avatar } = data
-        const { name } = data
+        const { name, avatar } = data
 
         commit('SET_NAME', name)
-        // 头像，暂时先写死
-        commit('SET_AVATAR', 'https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif')
+        commit('SET_AVATAR', avatar)
         resolve(data)
       }).catch(error => {
         reject(error)
@@ -59,13 +57,18 @@ const actions = {
     })
   },
 
-  // user logout
-  logout({ commit, state }) {
+  // admin logout
+  logout({ commit, state, dispatch }) {
     return new Promise((resolve, reject) => {
       logout(state.token).then(() => {
         commit('SET_TOKEN', '')
         removeToken()
         resetRouter()
+
+        // reset visited views and cached views
+        // to fixed https://github.com/PanJiaChen/vue-element-admin/issues/2485
+        // dispatch('tagsView/delAllViews', null, { root: true })
+
         resolve()
       }).catch(error => {
         reject(error)

@@ -1,6 +1,6 @@
 import Cookies from 'js-cookie'
 
-const TokenKey = 'vue_admin_template_token'
+const TokenKey = 'spring-cloud-milktea-vue'
 
 export function getToken() {
   return Cookies.get(TokenKey)
