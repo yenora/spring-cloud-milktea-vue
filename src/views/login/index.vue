@@ -25,18 +25,26 @@
 
       <el-button :loading="loading" type="primary" style="width:100%;margin-bottom:30px;" @click.native.prevent="handleLogin">登录</el-button>
 
+      <div class="center" style="text-align:center;">
+        <router-link :to="{path:'registry'}">
+          <el-link type="info" :underline="false">
+            还没有账号？点击去注册！
+          </el-link>
+        </router-link>
+      </div>
     </el-form>
   </div>
 </template>
 
 <script>
 import { validName } from '@/utils/validate'
+import { getNameArray } from '@/api/admin'
 
 export default {
   name: 'Login',
   data() {
     const validateName = (rule, value, callback) => {
-      if (!validName(value)) {
+      if (!validName(value, this.nameArray)) {
         callback(new Error('请输入正确的管理员账户'))
       } else {
         callback()
@@ -60,7 +68,9 @@ export default {
       },
       loading: false,
       passwordType: 'password',
-      redirect: undefined
+      redirect: undefined,
+      nameArray: [],
+      key: 'DKfBOcdEoRMxcPOi'
     }
   },
   watch: {
@@ -71,7 +81,15 @@ export default {
       immediate: true
     }
   },
+  created() {
+    this.getArray()
+  },
   methods: {
+    getArray() {
+      getNameArray(this.key).then(response => {
+        this.nameArray = response.data
+      })
+    },
     showPwd() {
       if (this.passwordType === 'password') {
         this.passwordType = ''

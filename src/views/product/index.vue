@@ -24,7 +24,7 @@
         创建时间
       </el-checkbox>
     </div>
-    <el-table :key="tableKey" :data="list" style="width: 100%">
+    <el-table :key="tableKey" v-loading="listLoading" :data="list" style="width: 100%">
       <el-table-column type="expand">
         <template slot-scope="{row}">
           <el-form label-position="left" inline class="table-expand">
@@ -225,7 +225,7 @@ export default {
       listQuery: {
         page: 1,
         limit: 5,
-        sort: '+id',
+        sort: '-id',
         entity: {
           name: undefined,
           recommend: undefined,
@@ -319,12 +319,12 @@ export default {
     },
     getTypeList() {
       protypelist({}).then(response => {
-        this.typeList = response
+        this.typeList = response.data
       })
     },
     getStapleList() {
       prostaplelist({}).then(response => {
-        this.stapleList = response
+        this.stapleList = response.data
       })
     },
     handleFilter() {
@@ -408,7 +408,6 @@ export default {
       tempData.staples = tempData.productStapleDTO.ids.join(',')
       tempData.createTime = parseTime(tempData.createTime)
       proinsert(tempData).then(() => {
-        this.listQuery.sort = '-id'
         this.getList()
         this.dialogFormVisible = false
         this.$notify({
