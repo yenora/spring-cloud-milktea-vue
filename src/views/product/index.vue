@@ -44,7 +44,7 @@
               <span>{{ row.price }}</span>
             </el-form-item>
             <el-form-item label="介绍">
-              <span>{{ row.introduction }}</span>
+              <span>{{ row.description }}</span>
             </el-form-item>
             <el-form-item label="推荐指数">
               <svg-icon v-for="n in + row.recommend" :key="n" icon-class="star" class="meta-item__icon" />
@@ -80,7 +80,7 @@
 
       <el-table-column label="介绍">
         <template slot-scope="{row}">
-          <span>{{ row.introduction }}</span>
+          <span>{{ row.description }}</span>
         </template>
       </el-table-column>
 
@@ -155,7 +155,7 @@
           <el-rate v-model="temp.recommend" :colors="['#99A9BF', '#F7BA2A', '#FF9900']" :max="3" style="margin-top:8px;" />
         </el-form-item>
         <el-form-item label="介绍">
-          <el-input v-model="temp.introduction" :autosize="{ minRows: 2, maxRows: 4}" type="textarea" placeholder="请输入" />
+          <el-input v-model="temp.description" :autosize="{ minRows: 2, maxRows: 4}" type="textarea" placeholder="请输入" />
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -255,7 +255,7 @@ export default {
         typeId: undefined,
         staples: '',
         recommend: 1,
-        introduction: '',
+        description: '',
         createTime: new Date(),
         name: '',
         productTypeDTO: {
@@ -313,8 +313,8 @@ export default {
   methods: {
     getList() {
       prolist(this.listQuery).then(response => {
-        this.list = response.list
-        this.total = response.total
+        this.list = response.data.list
+        this.total = response.data.total
       })
     },
     getTypeList() {
@@ -341,7 +341,7 @@ export default {
           'productStapleDTO',
           'name',
           'price',
-          'introduction',
+          'description',
           'sales',
           'createTime'
         ]
@@ -377,7 +377,7 @@ export default {
       this.temp = {
         id: undefined,
         recommend: 1,
-        introduction: '',
+        description: '',
         createTime: new Date(),
         name: '',
         productTypeDTO: {

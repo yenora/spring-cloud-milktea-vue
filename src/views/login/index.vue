@@ -37,19 +37,9 @@
 </template>
 
 <script>
-import { validName } from '@/utils/validate'
-import { getNameArray } from '@/api/admin'
-
 export default {
   name: 'Login',
   data() {
-    const validateName = (rule, value, callback) => {
-      if (!validName(value, this.nameArray)) {
-        callback(new Error('请输入正确的管理员账户'))
-      } else {
-        callback()
-      }
-    }
     const validatePassword = (rule, value, callback) => {
       if (value.length < 6) {
         callback(new Error('密码不能少于6位'))
@@ -63,14 +53,11 @@ export default {
         password: '123456'
       },
       loginRules: {
-        name: [{ required: true, trigger: 'blur', validator: validateName }],
         password: [{ required: true, trigger: 'blur', validator: validatePassword }]
       },
       loading: false,
       passwordType: 'password',
-      redirect: undefined,
-      nameArray: [],
-      key: 'DKfBOcdEoRMxcPOi'
+      redirect: undefined
     }
   },
   watch: {
@@ -81,15 +68,7 @@ export default {
       immediate: true
     }
   },
-  created() {
-    this.getArray()
-  },
   methods: {
-    getArray() {
-      getNameArray(this.key).then(response => {
-        this.nameArray = response.data
-      })
-    },
     showPwd() {
       if (this.passwordType === 'password') {
         this.passwordType = ''

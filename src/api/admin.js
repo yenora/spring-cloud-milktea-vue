@@ -1,24 +1,32 @@
 import request from '@/utils/request'
 
-export function getNameArray(key) {
+export function login(data) {
   return request({
-    url: '/v1/admin/array/name',
+    url: '/v1/admin/login',
+    method: 'post',
+    data
+  })
+}
+
+export function getInfo(token) {
+  return request({
+    url: '/v1/admin/info',
     method: 'get',
-    params: { key }
+    params: { token }
+  })
+}
+
+export function logout(token) {
+  return request({
+    url: '/v1/admin/logout',
+    method: 'post',
+    params: { token }
   })
 }
 
 export function registry(data) {
   return request({
     url: '/v1/admin/add',
-    method: 'post',
-    data
-  })
-}
-
-export function login(data) {
-  return request({
-    url: '/v1/admin/login',
     method: 'post',
     data
   })
@@ -36,20 +44,5 @@ export function del(id) {
   return request({
     url: '/v1/admin/' + id,
     method: 'delete'
-  })
-}
-
-export function getInfo(token) {
-  return request({
-    url: '/v1/admin/info',
-    method: 'get',
-    params: { token }
-  })
-}
-
-export function logout() {
-  return request({
-    url: '/v1/admin/logout',
-    method: 'post'
   })
 }

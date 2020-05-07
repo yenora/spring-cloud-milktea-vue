@@ -10,9 +10,9 @@
         <span class="svg-container">
           <svg-icon icon-class="star" />
         </span>
-        <el-select v-model="registryForm.role" placeholder="管理员角色">
+        <el-select v-model="registryForm.type" placeholder="管理员类型">
           <el-option
-            v-for="item in roles"
+            v-for="item in type"
             :key="item.value"
             :label="item.label"
             :value="item.value"
@@ -48,11 +48,11 @@
         </span>
       </el-form-item>
 
-      <el-form-item prop="tel">
+      <el-form-item prop="email">
         <span class="svg-container">
           <i class="el-icon-mobile-phone" />
         </span>
-        <el-input ref="tel" v-model="registryForm.tel" placeholder="电话号码" name="tel" type="text" tabindex="5" auto-complete="on" />
+        <el-input ref="email" v-model="registryForm.email" placeholder="电子邮箱" name="email" type="text" tabindex="5" auto-complete="on" />
       </el-form-item>
 
       <el-button :loading="loading" type="primary" style="width:100%;margin-bottom:30px;" @click.native.prevent="handleregistry">注册</el-button>
@@ -75,13 +75,6 @@ import { registry } from '@/api/admin'
 export default {
   name: 'Registry',
   data() {
-    const validRole = (rule, value, callback) => {
-      if (value === '') {
-        return callback(new Error('角色不能为空'))
-      } else {
-        return callback()
-      }
-    }
     const validateName = (rule, value, callback) => {
       if (value === '') {
         callback(new Error('管理员账户不能为空'))
@@ -107,41 +100,40 @@ export default {
         callback()
       }
     }
-    const validTel = (rule, value, callback) => {
-      var pattern = /^1[3456789]\d{9}$/
+    const validEmail = (rule, value, callback) => {
+      var pattern = /^[0-9a-zA-Z_.-]+[@][0-9a-zA-Z_.-]+([.][a-zA-Z]+){1,2}$/
       if (value === '') {
-        callback(new Error('电话号码不能为空'))
+        callback(new Error('电子邮箱不能为空'))
       } else if (!pattern.test(value)) {
-        callback(new Error('电话号码格式不正确'))
+        callback(new Error('电子邮箱格式不正确'))
       } else {
         return callback()
       }
     }
     return {
-      roles: [{
-        value: 'super',
-        label: '超级管理员',
+      type: [{
+        value: '0',
+        label: '系统管理员',
         disabled: true
       }, {
-        value: 'admin',
-        label: '管理员'
+        value: '1',
+        label: '普通管理员'
       }, {
-        value: 'observer',
+        value: '2',
         label: '观察员'
       }],
       registryForm: {
         name: '',
         password: '',
         confim: '',
-        tel: '',
-        role: ''
+        email: '',
+        type: ''
       },
       registryRules: {
         name: [{ required: true, trigger: 'blur', validator: validateName }],
         password: [{ required: true, trigger: 'blur', validator: validatePassword }],
         confim: [{ required: true, trigger: 'blur', validator: validateConfim }],
-        tel: [{ required: true, trigger: 'blur', validator: validTel }],
-        role: [{ required: true, trigger: 'change', validator: validRole }]
+        email: [{ required: true, trigger: 'blur', validator: validEmail }]
       },
       loading: false,
       passwordType: 'password',
@@ -174,8 +166,7 @@ export default {
         if (valid) {
           this.loading = true
           registry(this.registryForm).then(response => {
-            const { data } = response
-            if (data) {
+            if (response.code > 0) {
               this.$notify({
                 title: '成功',
                 message: '注册管理员账户成功',
@@ -183,9 +174,14 @@ export default {
                 duration: 2000
               })
               // 注册后直接登录
-              this.handleLogin({
+              this.$store.dispatch('admin/login', {
                 name: this.registryForm.name,
                 password: this.registryForm.password
+              }).then(() => {
+                this.$router.push({ path: this.redirect || '/' })
+                this.loading = false
+              }).catch(() => {
+                this.loading = false
               })
             } else {
               this.$notify({
@@ -198,17 +194,6 @@ export default {
           })
         }
       })
-    },
-    handleLogin(loginForm) {
-      this.$store
-        .dispatch('admin/login', loginForm)
-        .then(() => {
-          this.$router.push({ path: this.redirect || '/' })
-          this.loading = false
-        })
-        .catch(() => {
-          this.loading = false
-        })
     }
   }
 }
