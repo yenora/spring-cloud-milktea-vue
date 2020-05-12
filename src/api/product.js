@@ -30,3 +30,11 @@ export function proupdate(data) {
     data
   })
 }
+
+export function proListBySize(size) {
+  return request({
+    url: '/v1/product/query/list/size',
+    method: 'post',
+    params: { size }
+  })
+}
