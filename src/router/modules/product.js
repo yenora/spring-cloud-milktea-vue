@@ -13,21 +13,21 @@ const productRouter = {
   },
   children: [
     {
-      path: 'milktea',
+      path: 'list',
       name: '奶茶',
-      component: () => import('@/views/product/index'),
+      component: () => import('@/views/product/list'),
       meta: { title: '奶茶', icon: 'list' }
     },
     {
       path: 'staple',
       name: '原料',
-      component: () => import('@/views/tree/index'),
+      component: () => import('@/views/product/staple'),
       meta: { title: '原料', icon: 'list' }
     },
     {
       path: 'type',
       name: '种类',
-      component: () => import('@/views/tree/index'),
+      component: () => import('@/views/product/type'),
       meta: { title: '种类', icon: 'list' }
     }
   ]

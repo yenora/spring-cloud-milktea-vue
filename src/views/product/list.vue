@@ -14,6 +14,9 @@
       <el-button v-waves class="filter-item" type="primary" icon="el-icon-search" @click="handleFilter">
         查找
       </el-button>
+      <el-button v-waves class="filter-item" type="primary" icon="el-icon-refresh" @click="resetQueryForm">
+        重置
+      </el-button>
       <el-button v-waves class="filter-item" style="margin-left: 10px;" type="primary" icon="el-icon-edit" @click="handleCreate">
         添加
       </el-button>
@@ -163,7 +166,7 @@
         <el-radio :label="2">当前页导出</el-radio>
         <el-radio :label="3">自定义数量导出</el-radio>
       </el-radio-group>
-      <el-input-number v-show="customVisible" v-model="customNum" :min="1" :max="total" label="描述文字" @change="handleChangeExportNumber" />
+      <el-input-number v-show="customVisible" v-model="customNum" controls-position="right" :min="1" :max="total" @change="handleChangeExportNumber" />
       <span slot="footer" class="dialog-footer">
         <el-button v-waves @click="dialogExportVisible = false">取 消</el-button>
         <el-button v-waves :loading="downloadLoading" type="primary" @click="handleExportDownload(exportOptional)">确 定</el-button>
@@ -175,9 +178,7 @@
 </template>
 
 <script>
-import { prolist, proinsert, proupdate, prodel, proListBySize } from '@/api/product'
-import { protypelist } from '@/api/product_type'
-import { prostaplelist } from '@/api/product_staple'
+import { productList, productInsert, productUpdate, productDel, queryProductListBySize, queryTypelist, queryStapleList } from '@/api/product'
 import { deleteFile } from '@/api/fileUpload'
 import { parseTime } from '@/utils'
 
@@ -206,9 +207,9 @@ export default {
         limit: 5,
         sort: '-id',
         entity: {
-          name: undefined,
-          recommend: undefined,
-          typeId: undefined
+          name: '',
+          recommend: '',
+          typeId: ''
         }
       },
       tableKey: 0,
@@ -315,21 +316,34 @@ export default {
         stapleId: []
       }
     },
+    resetQueryForm() {
+      this.listQuery = {
+        page: 1,
+        limit: 5,
+        sort: '-id',
+        entity: {
+          name: undefined,
+          recommend: undefined,
+          typeId: undefined
+        }
+      }
+      this.getList()
+    },
     getList() {
       this.listLoading = true
-      prolist(this.listQuery).then(response => {
+      productList(this.listQuery).then(response => {
         this.list = response.data.list
         this.total = response.data.total
       })
       this.listLoading = false
     },
     getTypeList() {
-      protypelist({}).then(response => {
+      queryTypelist({}).then(response => {
         this.typeList = response.data
       })
     },
     getStapleList() {
-      prostaplelist({}).then(response => {
+      queryStapleList({}).then(response => {
         this.stapleList = response.data
       })
     },
@@ -410,7 +424,7 @@ export default {
     },
     createData() {
       const tempData = Object.assign({}, this.temp)
-      proinsert(tempData).then(() => {
+      productInsert(tempData).then(() => {
         this.dialogFormVisible = false
         this.getList()
         this.$notify({
@@ -423,7 +437,7 @@ export default {
     },
     updateData() {
       const tempData = Object.assign({}, this.temp)
-      proupdate(tempData).then(() => {
+      productUpdate(tempData).then(() => {
         this.dialogFormVisible = false
         this.getList()
         this.$notify({
@@ -449,7 +463,7 @@ export default {
             console.log(response.message)
           })
         }
-        prodel(row.id).then(() => {
+        productDel(row.id).then(() => {
           this.getList()
           this.$notify({
             title: '成功',
@@ -461,7 +475,7 @@ export default {
       })
     },
     getProList(size) {
-      proListBySize(size).then(response => {
+      queryProductListBySize(size).then(response => {
         this.totalList = response.data
       })
       return new Promise((resolve, reject) => {
