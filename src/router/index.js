@@ -36,13 +36,13 @@ import productRouter from './modules/product'
 export const constantRoutes = [
   {
     path: '/login',
-    component: () => import('@/views/login/index'),
+    component: () => import('@/views/login/sign'),
     hidden: true
   },
 
   {
     path: '/registry',
-    component: () => import('@/views/registry/index'),
+    component: () => import('@/views/login/registry'),
     hidden: true
   },
 
@@ -66,6 +66,42 @@ export const constantRoutes = [
 
   // 产品(位置不要动！我也不知道为什么！)
   productRouter,
+
+  {
+    path: '/order',
+    component: Layout,
+    redirect: '/order',
+    children: [{
+      path: 'order',
+      name: '订单管理',
+      component: () => import('@/views/order/index'),
+      meta: { title: '订单管理', icon: 'component' }
+    }]
+  },
+
+  {
+    path: '/board',
+    component: Layout,
+    redirect: '/board',
+    children: [{
+      path: 'board',
+      name: '留言管理',
+      component: () => import('@/views/board/index'),
+      meta: { title: '留言管理', icon: 'component' }
+    }]
+  },
+
+  {
+    path: '/member',
+    component: Layout,
+    redirect: '/member',
+    children: [{
+      path: 'member',
+      name: '客户管理',
+      component: () => import('@/views/member/index'),
+      meta: { title: '客户管理', icon: 'component' }
+    }]
+  },
 
   {
     path: '/home',

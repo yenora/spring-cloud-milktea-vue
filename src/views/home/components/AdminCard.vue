@@ -22,7 +22,7 @@
         <div class="user-bio-section-header"><svg-icon icon-class="education" /><span>教育经历</span></div>
         <div class="user-bio-section-body">
           <div class="text-muted">
-            杭州职业技术学院信息技术学院软件技术专业毕业生
+            技术小白
           </div>
         </div>
       </div>

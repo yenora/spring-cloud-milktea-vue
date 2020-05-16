@@ -1,4 +1,4 @@
-import { login, logout, getInfo } from '@/api/admin'
+import { login, logout, getInfo, updateInfo } from '@/api/admin'
 import { getToken, setToken, removeToken } from '@/utils/auth'
 import { resetRouter } from '@/router'
 
@@ -36,7 +36,6 @@ const actions = {
     })
   },
 
-  // get admin info
   getInfo({ commit, state }) {
     return new Promise((resolve, reject) => {
       getInfo(state.token).then(response => {
@@ -50,6 +49,25 @@ const actions = {
 
         commit('SET_NAME', name)
         commit('SET_AVATAR', avatar)
+        resolve(data)
+      }).catch(error => {
+        reject(error)
+      })
+    })
+  },
+
+  updateInfo({ commit, state }, adminInfo) {
+    return new Promise((resolve, reject) => {
+      const { name, avatar } = adminInfo
+      adminInfo.token = state.token
+      updateInfo(adminInfo).then(response => {
+        const { data } = response
+
+        removeToken()
+        commit('SET_TOKEN', data)
+        commit('SET_NAME', name)
+        commit('SET_AVATAR', avatar)
+        setToken(data)
         resolve(data)
       }).catch(error => {
         reject(error)

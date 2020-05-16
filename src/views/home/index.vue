@@ -29,7 +29,6 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
 import AdminCard from './components/AdminCard'
 import Activity from './components/Activity'
 import Timeline from './components/Timeline'
@@ -43,19 +42,14 @@ export default {
       admin: {
         id: undefined,
         name: '',
-        tel: '',
-        password: '',
-        role: '',
-        createTime: '',
-        avatar: ''
+        password: null,
+        email: '',
+        avatar: '',
+        type: '',
+        createTime: ''
       },
       activeTab: 'activity'
     }
-  },
-  computed: {
-    ...mapGetters([
-      'token'
-    ])
   },
   created() {
     this.getInfo()
@@ -63,17 +57,9 @@ export default {
   methods: {
     getInfo() {
       this.$store
-        .dispatch('admin/getInfo', this.token)
+        .dispatch('admin/getInfo')
         .then(response => {
           this.admin = response
-          this.admin.password = ''
-        })
-        .catch(() => {
-          this.$message({
-            message: '获取管理员信息失败',
-            type: 'danger',
-            duration: 2000
-          })
         })
     }
   }

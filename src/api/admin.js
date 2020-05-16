@@ -8,14 +8,6 @@ export function login(data) {
   })
 }
 
-export function getInfo(token) {
-  return request({
-    url: '/v1/admin/info',
-    method: 'get',
-    params: { token }
-  })
-}
-
 export function logout(token) {
   return request({
     url: '/v1/admin/logout',
@@ -32,7 +24,15 @@ export function registry(data) {
   })
 }
 
-export function update(data) {
+export function getInfo(token) {
+  return request({
+    url: '/v1/admin/info',
+    method: 'get',
+    params: { token }
+  })
+}
+
+export function updateInfo(data) {
   return request({
     url: '/v1/admin/update',
     method: 'post',
@@ -40,7 +40,7 @@ export function update(data) {
   })
 }
 
-export function del(id) {
+export function delInfo(id) {
   return request({
     url: '/v1/admin/' + id,
     method: 'delete'

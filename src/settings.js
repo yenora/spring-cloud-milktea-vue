@@ -1,6 +1,6 @@
 module.exports = {
 
-  title: '恋上奶茶-后台管理',
+  title: '恋上奶茶 后台管理系统',
 
   /**
    * @type {boolean} true | false

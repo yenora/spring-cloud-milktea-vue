@@ -28,15 +28,9 @@
         </template>
       </el-table-column>
 
-      <el-table-column label="价格">
+      <el-table-column label="介绍">
         <template slot-scope="{row}">
-          <span>{{ row.price }} 元</span>
-        </template>
-      </el-table-column>
-
-      <el-table-column label="库存">
-        <template slot-scope="{row}">
-          <span>{{ row.stocks }} 瓶</span>
+          <span>{{ row.description }}</span>
         </template>
       </el-table-column>
 
@@ -55,15 +49,10 @@
     <el-dialog :title="textMap[dialogStatus]" :visible.sync="dialogFormVisible">
       <el-form ref="dataForm" :rules="rules" :model="temp" label-position="left" label-width="90px" style="width: 400px; margin-left:50px;">
         <el-form-item label="名称" prop="name">
-          <el-input v-model="temp.name" placeholder="请输入名称" />
+          <el-input v-model="temp.name" />
         </el-form-item>
-        <el-form-item label="价格" prop="price">
-          <el-input v-model="temp.price" placeholder="请输入价格">
-            <template slot="append">元</template>
-          </el-input>
-        </el-form-item>
-        <el-form-item label="库存量" prop="stocks">
-          <el-input-number v-model="temp.stocks" value="dasdsad" controls-position="right" :min="1" :max="999999" /> 瓶
+        <el-form-item label="介绍" prop="description">
+          <el-input v-model="temp.description" :autosize="{ minRows: 2, maxRows: 4}" type="textarea" placeholder="请输入" />
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -81,13 +70,13 @@
 </template>
 
 <script>
-import { stapleList, stapleDel, stapleInsert, stapleUpdate } from '@/api/product'
+import { typeList, typeDel, typeInsert, typeUpdate } from '@/api/product'
 
 import Pagination from '@/components/Pagination'
 import waves from '@/directive/waves' // waves directive
 
 export default {
-  name: 'ProductStaple',
+  name: 'ProductType',
   components: { Pagination },
   directives: { waves },
   data() {
@@ -113,22 +102,12 @@ export default {
       },
       rules: {
         name: [{ required: true, message: '请输入名称' }],
-        price: [{ required: true, message: '请输入价格' },
-          {
-            validator(rule, value, callback) {
-              var pattern = /^\d+.?\d{0,2}$/
-              if (!pattern.test(value)) {
-                return callback(new Error('请正确的输入价格（双精度数值）！'))
-              } else return callback()
-            }
-          }],
-        stocks: [{ required: true, message: '请输入库存量' }, { type: 'number', message: '请输入数字，你家库存量不是数字啊' }]
+        description: [{ required: true, message: '请输入描述' }]
       },
       temp: {
         id: undefined,
         name: '',
-        price: '',
-        stocks: ''
+        description: ''
       }
     }
   },
@@ -140,8 +119,7 @@ export default {
       this.temp = {
         id: undefined,
         name: '',
-        price: '',
-        stocks: ''
+        description: ''
       }
     },
     resetQueryForm() {
@@ -157,7 +135,7 @@ export default {
     },
     getList() {
       this.listLoading = true
-      stapleList(this.listQuery).then(response => {
+      typeList(this.listQuery).then(response => {
         this.list = response.data.list
         this.total = response.data.total
         this.listLoading = false
@@ -186,7 +164,7 @@ export default {
     createData() {
       this.$refs['dataForm'].validate((valid) => {
         if (valid) {
-          stapleInsert(this.temp).then(() => {
+          typeInsert(this.temp).then(() => {
             this.getList()
             this.dialogFormVisible = false
             this.$notify({
@@ -202,7 +180,7 @@ export default {
     updateData() {
       this.$refs['dataForm'].validate((valid) => {
         if (valid) {
-          stapleUpdate(this.temp).then(() => {
+          typeUpdate(this.temp).then(() => {
             this.getList()
             this.dialogFormVisible = false
             this.$notify({
@@ -221,7 +199,7 @@ export default {
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
-        stapleDel(row.id).then(() => {
+        typeDel(row.id).then(() => {
           this.getList()
           this.$notify({
             title: '成功',
