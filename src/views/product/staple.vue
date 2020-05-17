@@ -15,8 +15,8 @@
         添加
       </el-button>
     </div>
-    <el-table :key="tableKey" v-loading="listLoading" :data="list" style="width: 100%">
-      <el-table-column label="ID">
+    <el-table v-loading="listLoading" :data="list" style="width: 100%">
+      <el-table-column label="编号">
         <template slot-scope="{row}">
           <span>{{ row.id }}</span>
         </template>
@@ -63,7 +63,7 @@
           </el-input>
         </el-form-item>
         <el-form-item label="库存量" prop="stocks">
-          <el-input-number v-model="temp.stocks" value="dasdsad" controls-position="right" :min="1" :max="999999" /> 瓶
+          <el-input-number v-model="temp.stocks" controls-position="right" :min="1" :max="999999" /> 瓶
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -101,7 +101,6 @@ export default {
         }
       },
       list: [],
-      tableKey: 0,
       total: 0,
       listLoading: true,
       dialogFormVisible: false,
