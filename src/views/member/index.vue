@@ -28,7 +28,7 @@
         </template>
       </el-table-column>
 
-      <el-table-column label="客户名称" width="100">
+      <el-table-column label="客户名称">
         <template slot-scope="{row}">
           <span>{{ row.name }}</span>
         </template>
@@ -72,7 +72,7 @@
         </template>
       </el-table-column>
 
-      <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
+      <el-table-column label="操作" align="center" class-name="small-padding fixed-width" width="200">
         <template slot-scope="{row}">
           <el-button type="primary" size="mini" @click="handleUpdate(row)">
             编辑

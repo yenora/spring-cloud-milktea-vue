@@ -97,7 +97,8 @@ export default {
         limit: 5,
         sort: '-id',
         entity: {
-          name: ''
+          name: '',
+          price: '0.50'
         }
       },
       list: [],
